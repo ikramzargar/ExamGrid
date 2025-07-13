@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "885133363939",
+    "project_id": "examgrid-b5c1c",
+    "storage_bucket": "examgrid-b5c1c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:885133363939:android:a33e105674a509a9ae53d6",
+        "android_client_info": {
+          "package_name": "com.ikramzargar.examgrid"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAFqbLxIXVP8Hhd9wJsjGYdKbjUDpprCJY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
