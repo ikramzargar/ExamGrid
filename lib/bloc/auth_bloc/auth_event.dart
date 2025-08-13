@@ -1,67 +1,102 @@
 import 'package:equatable/equatable.dart';
 
-/// Events that drive the AuthBloc.
-///
-/// Flow we support now:
-///   1⃣  Email + Password sign-up/login
-///   2⃣  Later, user verifies phone via Firebase SMS OTP before payment
-///
-/// * PhoneLoginRequested has been removed (not needed in current flow)
-/// * Added VerifyPhoneRequested → triggers send-OTP
-/// * OtpSubmitted remains to confirm the OTP
 abstract class AuthEvent extends Equatable {
   const AuthEvent();
+
   @override
   List<Object?> get props => [];
 }
 
-// ────────────────────────────────────────────────────────────── Sign-Up
-class SignUpRequested extends AuthEvent {
-  const SignUpRequested({
-    required this.firstName,
-    required this.lastName,
-    required this.phone,
-    required this.email,
-    required this.password,
-  });
+class AuthAuthenticated extends AuthEvent{
+}
+// Send OTP
+class AuthSendOtpRequested extends AuthEvent {
+  final String email;
+
+
+  const AuthSendOtpRequested({required this.email});
+
+  @override
+  List<Object?> get props => [email];
+}
+//Resend OTP
+class AuthReSendOtpRequested extends AuthEvent {
+  final String email;
+    final int counter;
+
+
+  const AuthReSendOtpRequested({required this.email, required this.counter});
+
+  @override
+  List<Object?> get props => [email];
+}
+
+
+// 🔹 OTP Verification
+class AuthVerifyOtpRequested extends AuthEvent {
+  final String email;
+  final String otp;
+
+  const AuthVerifyOtpRequested( {required this.otp, required this.email});
+
+  @override
+  List<Object?> get props => [otp , email];
+}
+
+// 🔹 Finalize Firebase user creation after OTP
+class AuthFinalizeSignUp extends AuthEvent {
   final String firstName;
   final String lastName;
   final String phone;
   final String email;
   final String password;
 
+  const AuthFinalizeSignUp({
+    required this.firstName,
+    required this.lastName,
+    required this.phone,
+    required this.email,
+    required this.password,
+  });
+
   @override
   List<Object?> get props => [firstName, lastName, phone, email, password];
 }
 
-// ─────────────────────────────────────────────────────────── Email Login
-class EmailLoginRequested extends AuthEvent {
-  const EmailLoginRequested(this.email, this.password);
+// 🔹 Finalize login after OTP
+class AuthFinalizeLogin extends AuthEvent {
   final String email;
   final String password;
-  @override
-  List<Object?> get props => [email, password];
-}
 
-// ─────────────────────────────────────────── Phone Verification (OTP)
-/// Sends an OTP to the given phone (must include country code e.g. +91…).
-class VerifyPhoneRequested extends AuthEvent {
-  const VerifyPhoneRequested(this.phone);
+  const AuthFinalizeLogin(this.email,this.password);
+
+  @override
+  List<Object?> get props => [email,password];
+}
+class AuthCheckIfUserExists extends AuthEvent {
+  final String email;
   final String phone;
+
+  const AuthCheckIfUserExists({required this.email, required this.phone});
+}
+class AuthLoginCredentialsChecked extends AuthEvent {
+  final String email;
+  final String password;
+
+  const AuthLoginCredentialsChecked({
+    required this.email,
+    required this.password,
+  });
+
   @override
-  List<Object?> get props => [phone];
+  List<Object> get props => [email, password];
 }
 
-/// Confirms the OTP that the user typed in.
-class OtpSubmitted extends AuthEvent {
-  const OtpSubmitted(this.verificationId, this.smsCode);
-  final String verificationId;
-  final String smsCode;
+class AuthSendResetLinkRequested extends AuthEvent {
+  final String email;
+  const AuthSendResetLinkRequested(this.email);
   @override
-  List<Object?> get props => [verificationId, smsCode];
+  List<Object?> get props => [email];
 }
-
-// ───────────────────────────────────────────────────────────── Logout
-class LogoutRequested extends AuthEvent {
-  const LogoutRequested();
-}
+// 🔹 Logout
+class AuthLogoutRequested extends AuthEvent {}

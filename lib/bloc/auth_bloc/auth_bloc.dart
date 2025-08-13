@@ -1,68 +1,129 @@
 import 'package:bloc/bloc.dart';
-
 import '../../repositories/auth_repo.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
+
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  AuthBloc(this._repo) : super(const AuthState()) {
-    on<SignUpRequested>(_onSignUp);
-    on<EmailLoginRequested>(_onEmailLogin);
-    on<VerifyPhoneRequested>(_onVerifyPhone);
-    on<OtpSubmitted>(_onOtpSubmit);
-    on<LogoutRequested>(_onLogout);
+  final AuthRepository authRepository;
+
+  AuthBloc({required this.authRepository}) : super(AuthInitial()) {
+    on<AuthSendOtpRequested>(_onSendOtpRequested);
+    on<AuthReSendOtpRequested>(_onReSendOtpRequested);
+    on<AuthVerifyOtpRequested>(_onVerifyOtpRequested);
+    on<AuthFinalizeSignUp>(_onFinalizeSignUp);
+    on<AuthFinalizeLogin>(_onFinalizeLogin);
+    on<AuthLogoutRequested>(_onLogoutRequested);
+    on<AuthSendResetLinkRequested>(_onSendResetLink);
+    on<AuthCheckIfUserExists>(_onCheckIfUserExists);
+    on<AuthLoginCredentialsChecked>(_onCheckUserCredentials);
   }
 
-  final AuthRepository _repo;
-
-  Future<void> _onSignUp(SignUpRequested e, Emitter<AuthState> emit) async {
-    emit(state.copyWith(status: AuthStatus.loading));
+  Future<void> _onSendOtpRequested(AuthSendOtpRequested event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
     try {
-      final user = await _repo.signUp(
-        firstName: e.firstName,
-        lastName: e.lastName,
-        phone: e.phone,
-        email: e.email,
-        password: e.password,
+      await authRepository.sendOtp(event.email);
+      emit(AuthOtpSent(event.email));
+    } catch (e) {
+      emit(AuthError('Failed to send OTP: $e'));
+    }
+  }
+  Future<void> _onReSendOtpRequested(
+      AuthReSendOtpRequested event, Emitter<AuthState> emit) async {
+     //emit(AuthLoading());
+    try {
+      await authRepository.sendOtp(event.email); // Call your API
+      emit(AuthOtpResent()); // Success state
+    } catch (e) {
+      emit(AuthError('Failed to send OTP: $e')); // Error state
+    }
+  }
+
+  Future<void> _onVerifyOtpRequested(AuthVerifyOtpRequested event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      final isValid = await authRepository.verifyOtp(event.email, event.otp);
+      if (isValid) {
+        emit(AuthOtpVerified());
+      } else {
+        emit(const AuthError('Invalid OTP'));
+      }
+    } catch (e) {
+    //  emit(AuthError('OTP verification failed: $e'));
+    }
+  }
+  Future<void> _onCheckIfUserExists(AuthCheckIfUserExists event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    final errorMessage = await authRepository.checkIfUserExists(
+      email: event.email,
+      phone: event.phone,
+    );
+
+    if (errorMessage != null) {
+      emit(AuthError(errorMessage));
+    } else {
+      // No user found → proceed to send OTP
+      add(AuthSendOtpRequested(email: event.email));
+    }
+  }
+  Future<void> _onFinalizeSignUp(AuthFinalizeSignUp event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      await authRepository.createUser(
+        email: event.email,
+        password: event.password,
+        firstName: event.firstName,
+        lastName: event.lastName,
+        phone: event.phone,
+
       );
-      emit(state.copyWith(status: AuthStatus.authenticated, user: user));
-    } catch (err) {
-      emit(state.copyWith(status: AuthStatus.error, error: err.toString()));
+      emit(AuthSignUpSuccess());
+    } catch (e) {
+      emit(AuthSignUpFailure('Sign-up failed: $e'));
     }
   }
 
-  Future<void> _onEmailLogin(EmailLoginRequested e, Emitter<AuthState> emit) async {
-    emit(state.copyWith(status: AuthStatus.loading));
+  Future<void> _onFinalizeLogin(AuthFinalizeLogin event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
     try {
-      final user = await _repo.loginWithEmail(email: e.email, password: e.password);
-      emit(state.copyWith(status: AuthStatus.authenticated, user: user));
-    } catch (err) {
-      emit(state.copyWith(status: AuthStatus.error, error: err.toString()));
+      await authRepository.login(email: event.email,password: event.password);
+      emit(AuthLoginSuccess());
+    } catch (e) {
+      emit(AuthLoginFailure('Login failed: $e'));
     }
   }
-
-  Future<void> _onVerifyPhone(VerifyPhoneRequested e, Emitter<AuthState> emit) async {
-    emit(state.copyWith(status: AuthStatus.loading));
+  Future<void> _onCheckUserCredentials(AuthLoginCredentialsChecked event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
     try {
-      final verificationId = await _repo.startPhoneVerification(e.phone);
-      emit(state.copyWith(status: AuthStatus.codeSent, verificationId: verificationId));
-    } catch (err) {
-      emit(state.copyWith(status: AuthStatus.error, error: err.toString()));
+      await authRepository.verifyLoginCredentials(
+        email: event.email,
+        password: event.password,
+      );
+
+      // If login successful, proceed to OTP
+      add(AuthSendOtpRequested(email: event.email));
+    } catch (e) {
+    emit(AuthError(e.toString().replaceFirst('Exception: ', '')));
     }
+
   }
 
-  Future<void> _onOtpSubmit(OtpSubmitted e, Emitter<AuthState> emit) async {
-    emit(state.copyWith(status: AuthStatus.loading));
+
+  Future<void> _onLogoutRequested(AuthLogoutRequested event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    await authRepository.logout();
+    emit(AuthInitial());
+  }
+  Future<void> _onSendResetLink(
+      AuthSendResetLinkRequested event,
+      Emitter<AuthState> emit,
+      ) async {
+    emit(AuthLoading());
     try {
-      final user = await _repo.confirmOtp(verificationId: e.verificationId, smsCode: e.smsCode);
-      emit(state.copyWith(status: AuthStatus.phoneVerified, user: user));
-    } catch (err) {
-      emit(state.copyWith(status: AuthStatus.error, error: err.toString()));
+      await authRepository.sendPasswordResetEmail(event.email);
+      emit(AuthResetLinkSent());
+    } catch (e) {
+      emit(AuthError(e.toString()));
     }
-  }
-
-  Future<void> _onLogout(LogoutRequested e, Emitter<AuthState> emit) async {
-    await _repo.signOut();
-    emit(const AuthState(status: AuthStatus.initial));
   }
 }
