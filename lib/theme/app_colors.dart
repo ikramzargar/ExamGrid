@@ -4,7 +4,7 @@ class AppColors {
   // Light Colors
   static const Color lightPrimary = Color(0xFFE5792D);
   static const Color lightOnPrimary = Colors.white;
-  static const Color lightSecondary = Color(0xFFffa390);
+  static const Color lightSecondary = Color(0xfffaf2ed);
   static const Color lightTertiary = Color(0xFFFFA000);
 
   // Dark Colors

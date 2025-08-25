@@ -28,11 +28,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   void _onSubmit() {
     if (_formKey.currentState!.validate()) {
-      //final firstName = _firstNameController.text.trim();
-     // final lastName = _lastNameController.text.trim();
+
       final phone = _phoneController.text.trim();
       final email = _emailController.text.trim();
-     // final password = _passwordController.text.trim();
+
 
       context.read<AuthBloc>().add(
             AuthCheckIfUserExists(email: email,phone: phone),
@@ -122,15 +121,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            const SizedBox(
-              height: 120,
+             SizedBox(
+              height: MediaQuery.of(context).size.height / 6-45,
               child: Padding(
                 padding: const EdgeInsets.only(top: 20.0),
                 child: Center(
                   child: Text(
                     'Create Your Account',
                     style: TextStyle(
-                        fontSize: 30,
+                        fontSize: 27,
                         fontWeight: FontWeight.bold,
                         color: Colors.white),
                   ),
@@ -138,7 +137,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
             ),
             Container(
-              height: 170,
+              height:  MediaQuery.of(context).size.height / 4.5,
               width: MediaQuery.of(context).size.width,
               decoration: const BoxDecoration(
                 color: Colors.white,
@@ -148,14 +147,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
               child: Center(
                   child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
+               // mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Image.asset(
                     'images/logo.png',
-                    height: 150,
-                    width: 150,
+                    height: 140,
+                    width: 140,
                   ),
+                  SizedBox(height: 20,),
                   Text('Please fill in your details to create an Account.'),
+                  SizedBox(height: 10,),
                 ],
               )),
             ),
@@ -168,6 +169,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   child: ListView(
                     padding: EdgeInsets.all(0),
                     children: [
+                      SizedBox(height: 10,),
                       TextFormField(
                         controller: _firstNameController,
                         decoration: kTextFieldDecoration(

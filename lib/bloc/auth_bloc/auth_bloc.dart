@@ -17,6 +17,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthSendResetLinkRequested>(_onSendResetLink);
     on<AuthCheckIfUserExists>(_onCheckIfUserExists);
     on<AuthLoginCredentialsChecked>(_onCheckUserCredentials);
+
   }
 
   Future<void> _onSendOtpRequested(AuthSendOtpRequested event, Emitter<AuthState> emit) async {

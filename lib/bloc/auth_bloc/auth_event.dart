@@ -30,7 +30,14 @@ class AuthReSendOtpRequested extends AuthEvent {
   @override
   List<Object?> get props => [email];
 }
+class FetchUserEvent extends AuthEvent {
+  final String uid;
 
+  const FetchUserEvent(this.uid);
+
+  @override
+  List<Object?> get props => [uid];
+}
 
 // 🔹 OTP Verification
 class AuthVerifyOtpRequested extends AuthEvent {

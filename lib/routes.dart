@@ -1,4 +1,6 @@
 import 'package:examgrid/ui/screens/auth/forget_password_screen.dart';
+import 'package:examgrid/ui/screens/dashboard.dart';
+import 'package:examgrid/ui/screens/test/test_history.dart';
 import 'package:flutter/material.dart';
 import 'ui/screens/splash_screen.dart';
 import 'ui/screens/auth/login_screen.dart';
@@ -12,11 +14,19 @@ class AppRoutes {
   static const String otp = '/otp';
   static const String home = '/home';
   static const String forgetPass = '/forgetPass';
+  static const String homeScreen = '/homeScreen';
+  static const String testHistory = '/testHistory';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case splash:
         return MaterialPageRoute(builder: (_) => const SplashScreen());
+
+      case testHistory:
+        return MaterialPageRoute(builder: (_) => const HistoryScreen());
+
+      case homeScreen:
+        return MaterialPageRoute(builder: (_) => const HomePage());
 
       case login:
         return MaterialPageRoute(builder: (_) => const LoginScreen());

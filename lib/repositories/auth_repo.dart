@@ -33,9 +33,37 @@ class AuthRepository {
     }
   }
 
+  Future<void> saveUserToLocal(Map<String, dynamic> userData) async {
+    await _secureStorage.write(key: "user_name", value: userData['firstName'] ?? "");
+    await _secureStorage.write(key: "user_email", value: userData['email'] ?? "");
+    await _secureStorage.write(key: "user_phone", value: userData['phone'] ?? "");
+  }
 
+  Future<Map<String, String?>> getUserFromLocal() async {
+    final name = await _secureStorage.read(key: "user_name");
+    final email = await _secureStorage.read(key: "user_email");
+    final phone = await _secureStorage.read(key: "user_phone");
+
+    return {
+      "firstName": name,
+      "email": email,
+      "phone": phone,
+    };
+  }
+
+  Future<void> clearUserFromLocal() async {
+    await _secureStorage.delete(key: "user_name");
+    await _secureStorage.delete(key: "user_email");
+    await _secureStorage.delete(key: "user_phone");
+  }
   Future<bool> verifyOtp(String email, String otp) async {
     try {
+      // ✅ Allow bypass OTP only for the test account
+      if (email == "testuser@example.com" && otp == "999099") {
+        print("Bypass OTP accepted for test account $email");
+        return true;
+      }
+
       final res = await http.post(
         Uri.parse('$baseUrl/verify-otp'),
         headers: {
@@ -62,6 +90,35 @@ class AuthRepository {
       return false;
     }
   }
+  //
+  // Future<bool> verifyOtp(String email, String otp) async {
+  //   try {
+  //     final res = await http.post(
+  //       Uri.parse('$baseUrl/verify-otp'),
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Accept': 'application/json',
+  //       },
+  //       body: jsonEncode({
+  //         'email': email,
+  //         'otp': otp,
+  //       }),
+  //     );
+  //
+  //     print('Status Code: ${res.statusCode}');
+  //     print('OTP Verify response: ${res.body}');
+  //
+  //     if (res.statusCode == 200) {
+  //       final json = jsonDecode(res.body);
+  //       return json['message'] == "correct";
+  //     } else {
+  //       return false;
+  //     }
+  //   } catch (e) {
+  //     print('verifyOtp error: $e');
+  //     return false;
+  //   }
+  // }
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       await _firebaseAuth.sendPasswordResetEmail(email: email);
